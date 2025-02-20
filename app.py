@@ -6,10 +6,11 @@ app = Flask(__name__)
 SESSION_ID = "testing"
 
 preloaded_pdfs = [
-    "birthcontrol.pdf", 
-    "warfarin.pdf",
-    "clozapine.pdf", 
-    "lexapro.pdf"
+    "birthcontrol.pdf", # yaz (birth control)
+    "warfarin.pdf", # coumadin (treat and prevent blood clots)
+    "antidepressant.pdf", # lexapro (antidepressant)
+    "diazepam.pdf", # valium (can treat anxiety, seizures, muscle spasms)
+    "risperidone.pdf" # respiridol (antipsychotic)
 ]
 
 for pdf in preloaded_pdfs:
@@ -46,7 +47,7 @@ def main():
         "from the PDF content.\n"
         
         "The medications you currently have on file (and thus can assist with) are: "
-        "Birth control, Warfarin, Clozapine, and an antidepressant."
+        "Birth control, Warfarin, Valium, and an antidepressant."
         "If prompted for the medications you have information on, or if no question is given, answer with "
         "these medicines. Do not answer any questions on anything that is not included "
         "in the uploaded documents. Say that you are not sure and to consult a doctor\n"
