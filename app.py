@@ -1,6 +1,6 @@
 import requests
 from flask import Flask, request, jsonify
-from llmproxy import generate
+from llmproxy import generate, pdf_upload
 
 app = Flask(__name__)
 SESSION_ID = "testing"
