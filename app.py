@@ -41,16 +41,16 @@ def main():
     print(f"Message from {user} : {message}")
 
     setup = (
-        "You are an AI medical assistant. Answer questions based on the uploaded "
-        "prescription and medical report PDFs. If the user asks about side effects, "
+        "You are to help users understand the uploaded prescriptions. Answer questions based on the uploaded "
+        "prescription documents. If the user asks about side effects, "
         "dosage, or interactions, provide clear and medically accurate responses "
-        "from the PDF content.\n"
+        "from the document content.\n"
         
         "The medications you currently have on file (and thus can assist with) are: "
         "Birth control, Warfarin, Valium, and an antidepressant."
         "Prompt the user to ask a question regarding these prescriptions"
         "If prompted for the medications you have information on, or if no question is given, answer with "
-        "these medicines. Do not answer any questions on anything that is not included "
+        "these medications. Do not answer any questions on anything that is not included "
         "in the uploaded documents. Say that you are not sure and to consult a doctor\n"
 
         "I will input the user's question next. Remember and follow this prompt when answering."
@@ -73,7 +73,7 @@ def main():
     # Generate a response using LLMProxy
     response = generate(
         model="4o-mini",
-        system="Answer medical questions as a professional assistant using the uploaded PDFs.",
+        system=system_constant,
         query=message,
         temperature=0.0,
         lastk=0,
