@@ -3,6 +3,21 @@ from flask import Flask, request, jsonify
 from llmproxy import generate
 
 app = Flask(__name__)
+SESSION_ID = "testing"
+
+preloaded_pdfs = [
+    "birthcontrol.pdf", 
+    "warfarin.pdf",
+    "clozapine.pdf", 
+    "lexapro.pdf"
+]
+
+for pdf in preloaded_pdfs:
+    upload = pdf_upload(
+        path = pdf,
+        session_id=SESSION_ID,
+        strategy = 'smart')
+
 
 @app.route('/')
 def hello_world():
@@ -24,14 +39,41 @@ def main():
 
     print(f"Message from {user} : {message}")
 
-    # Generate a response using LLMProxy
-    response = generate(
-        model='4o-mini',
-        system='answer my question and add keywords',
-        query= message,
+    setup = (
+        "You are an AI medical assistant. Answer questions based on the uploaded "
+        "prescription and medical report PDFs. If the user asks about side effects, "
+        "dosage, or interactions, provide clear and medically accurate responses "
+        "from the PDF content.\n"
+
+        "If no question is given, or something irrelevant to the pdfs are given, "
+        "explain what your role is as an AI medical assistant, and list the medicines "
+        "you have information on based on the uploaded PDFs. Explain to users clearly "
+        "what your role is, and let them know what medications you have on file."
+    )
+
+    setup = generate(
+        model="4o-mini",
+        system="Answer medical questions as a professional assistant using the uploaded PDFs.",
+        query=setup,
         temperature=0.0,
         lastk=0,
-        session_id='GenericSession'
+        session_id=SESSION_ID,
+        rag_usage=True,
+        rag_threshold="0.6",
+        rag_k=1
+    )
+
+    # Generate a response using LLMProxy
+    response = generate(
+        model="4o-mini",
+        system="Answer medical questions as a professional assistant using the uploaded PDFs.",
+        query=message,
+        temperature=0.0,
+        lastk=0,
+        session_id=SESSION_ID,
+        rag_usage=True,
+        rag_threshold="0.6",
+        rag_k=1
     )
 
     response_text = response['response']
