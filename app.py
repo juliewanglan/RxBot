@@ -49,6 +49,12 @@ def main():
         "explain what your role is as an AI medical assistant, and list the medicines "
         "you have information on based on the uploaded PDFs. Explain to users clearly "
         "what your role is, and let them know what medications you have on file."
+
+        "The medications you currently have on file (and thus can assist with) are: "
+        "Birth control, Warfarin, Clozapine, and an antidepressant."
+        "If prompted, or if no question is given, tell the user that you can answer "
+        "questions on these medicines. Do not answer questions on other medicines "
+        "that you have not received documents and information on."
     )
 
     setup = generate(
@@ -59,7 +65,7 @@ def main():
         lastk=0,
         session_id=SESSION_ID,
         rag_usage=True,
-        rag_threshold="0.6",
+        rag_threshold="0.8",
         rag_k=1
     )
 
