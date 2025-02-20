@@ -59,14 +59,9 @@ def main():
 
     setup = generate(
         model="4o-mini",
-        system="Answer medical questions as a professional assistant using the uploaded PDFs.",
+        system="Listen to directions to guide future conversation.",
         query=setup,
-        temperature=0.0,
-        lastk=0,
         session_id=SESSION_ID,
-        rag_usage=True,
-        rag_threshold="0.8",
-        rag_k=1
     )
 
     # Generate a response using LLMProxy
