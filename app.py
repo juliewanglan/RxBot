@@ -31,7 +31,7 @@ def main():
     # Extract relevant information
     user = data.get("user_name", "Unknown")
     message = data.get("text", "")
-    file = data.get("file", {})
+    file = data.get("attachments", [{}])[0].get("file", {})
 
     print(data)
 
@@ -79,7 +79,9 @@ def main():
                     rag_k=1
                 )
 
-                summary_text = summary_response.get("response", "No summary available.")
+                summary_text = summary_response["response"]
+
+                print(summary_text)
                 
                 return jsonify({
                     "text": "Summary of uploaded prescription: {summary_text}"
