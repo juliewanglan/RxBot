@@ -70,7 +70,7 @@ def main():
         lastk=0,
         session_id=SESSION_ID,
         rag_usage=True,
-        rag_threshold="0.6",
+        rag_threshold="0.8",
         rag_k=1
     )
 
