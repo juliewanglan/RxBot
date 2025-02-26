@@ -44,6 +44,7 @@ def main():
     # Initialize user context if not present
     if user not in USER_CONTEXT:
         USER_CONTEXT[user] = []
+        USER_SYMPTOMS[user] = None
         system_constant = (
                 """
                 Let the user know that you are an RxBot to help users understand prescriptions
@@ -72,11 +73,35 @@ def main():
         )
     print(f"Message from {user} : {message}")
 
-    # # Limit conversation history to last 5 messages
-    # USER_CONTEXT[user] = USER_CONTEXT[user][-5:]
+    USER_CONTEXT[user].append(f"User: {message}")
+    USER_CONTEXT[user] = USER_CONTEXT[user][-5:]
 
     # Generate chatbot response with context
     context = "\n".join(USER_CONTEXT[user])
+
+    if "conversation done" in message.lower():
+        symptom_response = generate(
+            model="4o-mini",
+            system= (
+                """
+                You are an assistant that drafts symptom report emails based on user conversations.
+                Identify the user's symptoms, link them to medications, and format the response as a clear, concise email.
+                Only respond with the email body, without extra commentary.
+                """
+            ),
+            query=f"Analyze the following conversation, extract possible symptoms, and generate an email:\n{context}",
+            temperature=0.0,
+            lastk=0,
+            session_id="symptoms"
+        )
+        
+        symptom_text = symptom_response['response']
+        if symptom_text and symptom_text.strip():
+            USER_SYMPTOMS[user] = symptom_text
+            return jsonify({"text": "Would you like to send the following symptom report to your doctor? Reply 'yes' to confirm.\n\n" + symptom_text})
+        else:
+            return jsonify({"text": "No symptoms were detected."})
+        
     response = generate(
         model="4o-mini",
         system=system_constant,
@@ -88,43 +113,16 @@ def main():
         rag_threshold=0.8,
         rag_k=1
     )
-
     response_text = response['response']
-    
-    # Send response back
-    print(response_text)
-    # Append user message to history
-    USER_CONTEXT[user].append(f"User: {message}, Response:{response_text}")
+    USER_CONTEXT[user].append(f"RxBot Response:{response_text}")
 
-    if "conversation done" in message.lower():
-        symptom_response = generate(
-            model="4o-mini",
-            system= (
-                """
-                You are an assistant that identifies symptoms from user conversations.
-                Only respond with any symptoms, separated by commas.
-                If there are no symptoms, do not respond.
-                """
-            ),
-            query=f"Analyze the following conversation and extract possible symptoms:\n{context}",
-            temperature=0.0,
-            lastk=0,
-            session_id="symptoms"
-        )
-        symptom_text = symptom_response['response']
-        if symptom_text is not None:
-            USER_SYMPTOMS[user].append(symptom_text)
 
-        if USER_SYMPTOMS[user]:
-            return jsonify({"text": "Would you like to send your symptom report to your doctor? Reply 'yes' to confirm."})
-    
     if "yes" in message.lower() and user in USER_SYMPTOMS and USER_SYMPTOMS[user]:
-        summary = f"User {user} has reported the following symptoms: {', '.join(set(USER_SYMPTOMS[user]))}."
-        doctor_email = "juliewanglan@gmailcom"  # Replace with actual doctor email
-        send_email("juliewanglan@gmail.com", doctor_email, "Patient Symptom Report", summary)
-        USER_SYMPTOMS[user] = []
+        doctor_email = "juliewanglan@gmail.com"  # Replace with actual doctor email
+        send_email("juliewanglan@gmail.com", doctor_email, "Patient Symptom Report", USER_SYMPTOMS[user])
+        USER_SYMPTOMS[user] = None
         return jsonify({"text": "Your symptoms have been sent to your doctor."})
-    
+
     return jsonify({"text": response_text})
     
 @app.errorhandler(404)
