@@ -97,10 +97,10 @@ def main():
                 """
                 You are an assistant that drafts messages based on user conversations.
                 Identify the user's symptoms, link them to medications, and format the response as a clear, concise message.
-                Only respond with the message body, without extra commentary.
+                Only respond with the message body, without extra commentary, grettings, or signoffs.
                 """
             ),
-            query=f"Analyze the following conversation, extract possible symptoms, and generate a message:\n{context}",
+            query=f"Analyze the following conversation, extract possible symptoms, and generate a text message:\n{context}. The user's name is {user}",
             temperature=0.0,
             lastk=100,
             session_id="symptoms"
@@ -117,7 +117,7 @@ def main():
             }
             requests.post(url, json=rc_payload, headers=headers)
             
-            return jsonify({"text": "The following has been sent to your doctor.\n\n" + symptom_text})
+            return jsonify({"text": "The following summary has been sent to your doctor.\n\n" + symptom_text})
         else:
             return jsonify({"text": "No symptoms were detected."})
         
