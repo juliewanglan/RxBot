@@ -124,7 +124,7 @@ def main():
     response = generate(
         model="4o-mini",
         system=system_constant,
-        query=f"User: {message}",
+        query=f"Previous conversation:\n{context}User: {message}",
         temperature=0.0,
         lastk=0,
         session_id=SESSION_ID,
