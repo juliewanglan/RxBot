@@ -97,8 +97,8 @@ def main():
             system= (
                 """
                 You are an assistant that drafts messages based on user conversations.
-                Identify the user's symptoms, link them to medications, and format the response as a clear, concise message.
-                Only respond with the message body, without extra commentary, grettings, or signoffs.
+                Summarize the user's symptoms and what medications they are taking and format the response as a clear, concise message.
+                Only respond with the message body.
                 """
             ),
             query=f"Analyze the following conversation, extract possible symptoms, and generate a text message:\n{context}. The user's name is {user}",
