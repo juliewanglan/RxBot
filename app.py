@@ -4,6 +4,7 @@ from llmproxy import generate, pdf_upload
 
 app = Flask(__name__)
 SESSION_ID = "testing"
+USER_CONTEXT = {}  # Dictionary to store user conversation history
 
 preloaded_pdfs = [
     "birthcontrol.pdf", # yaz (birth control)
@@ -37,54 +38,48 @@ def main():
     # Ignore bot messages
     if data.get("bot") or not message:
         return jsonify({"status": "ignored"})
+    
+    # Initialize user context if not present
+    if user not in USER_CONTEXT:
+        USER_CONTEXT[user] = []
+
 
     print(f"Message from {user} : {message}")
 
-    setup = (
-        "You are to help users understand the uploaded prescriptions. Answer questions based on the uploaded "
-        "prescription documents. If the user asks about side effects, "
-        "dosage, or interactions, provide clear and medically accurate responses "
-        "from the document content.\n"
-        
-        "The medications you currently have on file (and thus can assist with) are: "
-        "Birth control, Warfarin, Valium, and an antidepressant."
-        "Prompt the user to ask a question regarding these prescriptions"
-        "If prompted for the medications you have information on, or if no question is given, answer with "
-        "these medications. Do not answer any questions on anything that is not included "
-        "in the uploaded documents. Say that you are not sure and to consult a doctor\n"
-
-        "The user will input their question next. Remember and follow this prompt when answering."
-    )
+    # Append user message to history
+    USER_CONTEXT[user].append(f"User: {message}")
+    
+    # Limit conversation history to last 5 messages
+    USER_CONTEXT[user] = USER_CONTEXT[user][-5:]
 
     system_constant = (
-        "Let the user know that you are an RxBot to help users understand prescriptions."
-        "Prompt the user to ask a question based on the medications that you have "
-        "received documentation on: Yaz (birth control), Coumadin (warfarin), "
-        "Lexapro (antidepressant), Valium (Diazepam), and Respiridol (risperidone)."
-        "Give them examples on what to ask about, such as its use, things to avoid, side effects, "
-        "etc. Be thorough."
-        "Act helpful to guide users through these prescriptions."
+        """
+        Let the user know that you are an RxBot to help users understand prescriptions
+        and understand symptoms that they are experiencing with their prescriptions.
+        Prompt the user to ask a question and give thier experience based on the medications that you have 
+        received documentation on: Yaz (birth control), Coumadin (warfarin), 
+        Lexapro (antidepressant), Valium (Diazepam), and Respiridol (risperidone).
+        Give them examples on what to ask about, such as its use, things to avoid, side effects, 
+        etc. Be thorough.
+        Prompt the user to tell you how the medication is making them feel or other symptoms.
+        Act helpful to guide users through these prescriptions.
+        """
     )
 
-    setup = generate(
-        model="4o-mini",
-        system=system_constant,
-        query=setup,
-        session_id=SESSION_ID,
-    )
-
-    # Generate a response using LLMProxy
+    # Generate chatbot response with context
+    context = "\n".join(USER_CONTEXT[user])
     response = generate(
         model="4o-mini",
         system=system_constant,
-        query=message,
+        query=f"Previous conversation:\n{context}\nUser: {message}",
         temperature=0.0,
         lastk=0,
         session_id=SESSION_ID,
         rag_usage=True,
-        rag_threshold="0.8",
+        rag_threshold=0.8,
         rag_k=1
     )
+
 
     response_text = response['response']
     
