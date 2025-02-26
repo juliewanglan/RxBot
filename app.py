@@ -42,29 +42,37 @@ def main():
     # Initialize user context if not present
     if user not in USER_CONTEXT:
         USER_CONTEXT[user] = []
-
-
+        system_constant = (
+                """
+                Let the user know that you are an RxBot to help users understand prescriptions
+                and understand symptoms that they are experiencing with their prescriptions.
+                Prompt the user to ask a question and give thier experience based on the medications that you have 
+                received documentation on: Yaz (birth control), Coumadin (warfarin), 
+                Lexapro (antidepressant), Valium (Diazepam), and Respiridol (risperidone).
+                Give them examples on what to ask about, such as its use, things to avoid, side effects, 
+                etc. Be thorough.
+                Prompt the user to tell you how the medication is making them feel or other symptoms.
+                Act helpful to guide users through these prescriptions.
+                """
+            )
+    else:
+        system_constant = (
+            """
+            You are an RxBot that provides medication information. You are looking
+            to see if users have any symptoms with their medication
+            You should only interact with moedications that you have received
+            documentation on: Yaz (birth control), Coumadin (warfarin), 
+            Lexapro (antidepressant), Valium (Diazepam), and Respiridol (risperidone).
+            """
+        )
     print(f"Message from {user} : {message}")
 
     # Append user message to history
     USER_CONTEXT[user].append(f"User: {message}")
-    
     # Limit conversation history to last 5 messages
     USER_CONTEXT[user] = USER_CONTEXT[user][-5:]
 
-    system_constant = (
-        """
-        Let the user know that you are an RxBot to help users understand prescriptions
-        and understand symptoms that they are experiencing with their prescriptions.
-        Prompt the user to ask a question and give thier experience based on the medications that you have 
-        received documentation on: Yaz (birth control), Coumadin (warfarin), 
-        Lexapro (antidepressant), Valium (Diazepam), and Respiridol (risperidone).
-        Give them examples on what to ask about, such as its use, things to avoid, side effects, 
-        etc. Be thorough.
-        Prompt the user to tell you how the medication is making them feel or other symptoms.
-        Act helpful to guide users through these prescriptions.
-        """
-    )
+    
 
     # Generate chatbot response with context
     context = "\n".join(USER_CONTEXT[user])
@@ -79,7 +87,6 @@ def main():
         rag_threshold=0.8,
         rag_k=1
     )
-
 
     response_text = response['response']
     
