@@ -63,16 +63,13 @@ def main():
             You should only interact with moedications that you have received
             documentation on: Yaz (birth control), Coumadin (warfarin), 
             Lexapro (antidepressant), Valium (Diazepam), and Respiridol (risperidone).
+            Do not regreet the user. You guys have already spoke.
             """
         )
     print(f"Message from {user} : {message}")
 
-    # Append user message to history
-    USER_CONTEXT[user].append(f"User: {message}")
-    # Limit conversation history to last 5 messages
-    USER_CONTEXT[user] = USER_CONTEXT[user][-5:]
-
-    
+    # # Limit conversation history to last 5 messages
+    # USER_CONTEXT[user] = USER_CONTEXT[user][-5:]
 
     # Generate chatbot response with context
     context = "\n".join(USER_CONTEXT[user])
@@ -92,6 +89,8 @@ def main():
     
     # Send response back
     print(response_text)
+    # Append user message to history
+    USER_CONTEXT[user].append(f"User: {message}, Response:{response_text}")
 
     return jsonify({"text": response_text})
     
