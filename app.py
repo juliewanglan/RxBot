@@ -1,10 +1,12 @@
 import requests
 from flask import Flask, request, jsonify
 from llmproxy import generate, pdf_upload
+from agent_tools import send_email
 
 app = Flask(__name__)
 SESSION_ID = "testing"
 USER_CONTEXT = {}  # Dictionary to store user conversation history
+USER_SYMPTOMS = {}  # Dictionary to track symptoms per user
 
 preloaded_pdfs = [
     "birthcontrol.pdf", # yaz (birth control)
@@ -63,7 +65,9 @@ def main():
             You should only interact with moedications that you have received
             documentation on: Yaz (birth control), Coumadin (warfarin), 
             Lexapro (antidepressant), Valium (Diazepam), and Respiridol (risperidone).
-            Do not regreet the user. You guys have already spoke.
+            You have already spoke with this user. Take note of the context in
+            the query.
+            Prompt the user to type "conversation done" if they are finished.
             """
         )
     print(f"Message from {user} : {message}")
@@ -76,7 +80,7 @@ def main():
     response = generate(
         model="4o-mini",
         system=system_constant,
-        query=f"Previous conversation:\n{context}\nUser: {message}",
+        query=f"Previous conversation:\n{context}\User: {message}",
         temperature=0.0,
         lastk=0,
         session_id=SESSION_ID,
@@ -92,6 +96,35 @@ def main():
     # Append user message to history
     USER_CONTEXT[user].append(f"User: {message}, Response:{response_text}")
 
+    if "conversation done" in message.lower():
+        symptom_response = generate(
+            model="4o-mini",
+            system= (
+                """
+                You are an assistant that identifies symptoms from user conversations.
+                Only respond with any symptoms, separated by commas.
+                If there are no symptoms, do not respond.
+                """
+            ),
+            query=f"Analyze the following conversation and extract possible symptoms:\n{context}",
+            temperature=0.0,
+            lastk=0,
+            session_id="symptoms"
+        )
+        symptom_text = symptom_response['response']
+        if symptom_text is not None:
+            USER_SYMPTOMS[user].append(symptom_text)
+
+        if USER_SYMPTOMS[user]:
+            return jsonify({"text": "Would you like to send your symptom report to your doctor? Reply 'yes' to confirm."})
+    
+    if "yes" in message.lower() and user in USER_SYMPTOMS and USER_SYMPTOMS[user]:
+        summary = f"User {user} has reported the following symptoms: {', '.join(set(USER_SYMPTOMS[user]))}."
+        doctor_email = "juliewanglan@gmailcom"  # Replace with actual doctor email
+        send_email("juliewanglan@gmail.com", doctor_email, "Patient Symptom Report", summary)
+        USER_SYMPTOMS[user] = []
+        return jsonify({"text": "Your symptoms have been sent to your doctor."})
+    
     return jsonify({"text": response_text})
     
 @app.errorhandler(404)
