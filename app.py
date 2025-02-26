@@ -1,7 +1,18 @@
 import requests
+import os
 from flask import Flask, request, jsonify
 from llmproxy import generate, pdf_upload
 from agent_tools import send_email
+
+# API endpoint
+url = "https://chat.genaiconnect.net/api/v1/chat.postMessage" #URL of RocketChat server, keep the same
+
+# Headers with authentication tokens
+headers = {
+    "Content-Type": "application/json",
+    "X-Auth-Token": os.environ.get("RC_token"), #Replace with your bot token for local testing or keep it and store secrets in Koyeb
+    "X-User-Id": os.environ.get("RC_userId")#Replace with your bot user id for local testing or keep it and store secrets in Koyeb
+}
 
 app = Flask(__name__)
 SESSION_ID = "testing"
@@ -84,9 +95,9 @@ def main():
             model="4o-mini",
             system= (
                 """
-                You are an assistant that drafts symptom report emails based on user conversations.
-                Identify the user's symptoms, link them to medications, and format the response as a clear, concise email.
-                Only respond with the email body, without extra commentary.
+                You are an assistant that drafts messages based on user conversations.
+                Identify the user's symptoms, link them to medications, and format the response as a clear, concise message.
+                Only respond with the message body, without extra commentary.
                 """
             ),
             query=f"Analyze the following conversation, extract possible symptoms, and generate an email:\n{context}",
@@ -98,6 +109,14 @@ def main():
         symptom_text = symptom_response['response']
         if symptom_text and symptom_text.strip():
             USER_SYMPTOMS[user] = symptom_text
+            
+            # Send message to BOT-JULIE
+            rc_payload = {
+                "channel": "@julie.wang",
+                "text": f"User {user} has completed their conversation. Summary:\n{symptom_text}"
+            }
+            requests.post(url, json=rc_payload, headers=headers)
+            
             return jsonify({"text": "Would you like to send the following symptom report to your doctor? Reply 'yes' to confirm.\n\n" + symptom_text})
         else:
             return jsonify({"text": "No symptoms were detected."})
