@@ -79,7 +79,8 @@ def main():
             Lexapro (antidepressant), Valium (Diazepam), and Respiridol (risperidone).
             You have already spoke with this user. Take note of the context in
             the query.
-            Prompt the user to type "conversation done" if they are finished.
+            Prompt the user to type "conversation done" if they are finished and would like
+            a summary of their symptoms to be sent to their doctor.
             """
         )
     print(f"Message from {user} : {message}")
