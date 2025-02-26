@@ -100,7 +100,7 @@ def main():
                 Only respond with the message body, without extra commentary.
                 """
             ),
-            query=f"Analyze the following conversation, extract possible symptoms, and generate an email:\n{context}",
+            query=f"Analyze the following conversation, extract possible symptoms, and generate a message:\n{context}",
             temperature=0.0,
             lastk=0,
             session_id="symptoms"
@@ -117,7 +117,7 @@ def main():
             }
             requests.post(url, json=rc_payload, headers=headers)
             
-            return jsonify({"text": "Would you like to send the following symptom report to your doctor? Reply 'yes' to confirm.\n\n" + symptom_text})
+            return jsonify({"text": "The following has been sent to your doctor.\n\n" + symptom_text})
         else:
             return jsonify({"text": "No symptoms were detected."})
         
@@ -134,13 +134,6 @@ def main():
     )
     response_text = response['response']
     USER_CONTEXT[user].append(f"RxBot Response:{response_text}")
-
-
-    if "yes" in message.lower() and user in USER_SYMPTOMS and USER_SYMPTOMS[user]:
-        doctor_email = "juliewanglan@gmail.com"  # Replace with actual doctor email
-        send_email("juliewanglan@gmail.com", doctor_email, "Patient Symptom Report", USER_SYMPTOMS[user])
-        USER_SYMPTOMS[user] = None
-        return jsonify({"text": "Your symptoms have been sent to your doctor."})
 
     return jsonify({"text": response_text})
     
