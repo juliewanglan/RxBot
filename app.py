@@ -102,7 +102,7 @@ def main():
             ),
             query=f"Analyze the following conversation, extract possible symptoms, and generate a message:\n{context}",
             temperature=0.0,
-            lastk=0,
+            lastk=100,
             session_id="symptoms"
         )
         
@@ -130,7 +130,7 @@ def main():
         session_id=SESSION_ID,
         rag_usage=True,
         rag_threshold=0.8,
-        rag_k=1
+        rag_k=1000
     )
     response_text = response['response']
     USER_CONTEXT[user].append(f"RxBot Response:{response_text}")
