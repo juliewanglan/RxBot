@@ -1,5 +1,6 @@
 import os
 import requests
+import uuid
 from flask import Flask, request, jsonify
 from llmproxy import generate
 
@@ -11,6 +12,8 @@ RC_HEADERS = {
     "X-Auth-Token": os.environ.get("RC_token"),
     "X-User-Id": os.environ.get("RC_userId")
 }
+
+SESSION_IDS = {}
 
 # Define agents
 
@@ -26,7 +29,7 @@ def symptom_extraction_agent(message, session_id):
         query=symptom_prompt,
         temperature=0.0,
         lastk=10,
-        session_id=session_id
+        session_id=f"{session_id}_symptoms"
     )
     return response.get('response', '').strip()
 
@@ -43,12 +46,11 @@ def medical_analysis_agent(symptoms, session_id):
         query=analysis_prompt,
         temperature=0.0,
         lastk=10,
-        session_id=session_id
+        session_id=f"{session_id}_analysis"
     )
     return response.get('response', '').strip()
 
-def send_message_to_julie(summary):
-    """Send a message to Julie via Rocket.Chat."""
+def send_message_to_doc(summary):
     payload = {
         "channel": "@julie.wang",
         "text": summary
@@ -65,9 +67,10 @@ def main():
     if data.get("bot") or not message:
         return jsonify({"status": "ignored"})
     
-    # Create session ID based on user conversation
-    conversation_id = data.get("channel_id", data.get("conversation_id", data.get("chat_id", "default")))
-    session_id = f"{conversation_id}_{user}"
+    # Maintain session ID for the user
+    if user not in SESSION_IDS:
+        SESSION_IDS[user] = str(uuid.uuid4())
+    session_id = SESSION_IDS[user]
     print(f"Processing request for session_id: '{session_id}'")
     
     # Prompt user to say "conversation done" to end
@@ -88,9 +91,11 @@ def main():
         symptoms = symptom_extraction_agent(message, session_id)
         if symptoms:
             analysis = medical_analysis_agent(symptoms, session_id)
-            send_message_to_julie(f"User {user} has completed their conversation. Summary:\n{analysis}")
-            return jsonify({"text": "A summary has been sent to Julie."})
-        return jsonify({"text": "No symptoms were detected."})
+            send_message_to_doc(f"User {user} has completed their conversation. Summary:\n{analysis}")
+            SESSION_IDS[user] = str(uuid.uuid4())  # reset session ID for new conversation
+            return jsonify({"text": "A summary has been sent to Julie. Your session has been reset for a new conversation."})
+        SESSION_IDS[user] = str(uuid.uuid4())  # reset session ID even if no symptoms detected
+        return jsonify({"text": "No symptoms were detected. Your session has been reset for a new conversation."})
     
     return jsonify({"text": response_text})
 
