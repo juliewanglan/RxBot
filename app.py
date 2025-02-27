@@ -57,7 +57,7 @@ def send_message_to_doc(summary):
     }
     requests.post(RC_URL, json=payload, headers=RC_HEADERS)
 
-@app.route('/', methods=['POST'])
+@app.route('/query', methods=['POST'])
 def main():
     data = request.get_json()
     user = data.get("user_name", "Unknown")
