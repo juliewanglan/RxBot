@@ -78,7 +78,9 @@ def main():
         model="4o-mini",
         system="You are a virtual doctor providing helpful medical advice based on symptoms. "
                "When you feel the conversation is nearing an end, prompt the user to say 'conversation done' "
-               "to summarize and finalize the interaction.",
+               "to summarize and finalize the interaction."
+               "If this is your first message, please explain to the user what you can "
+               "help with and some ideas to prompt.",
         query=message,
         temperature=0.0,
         lastk=10,
@@ -93,7 +95,7 @@ def main():
             analysis = medical_analysis_agent(symptoms, session_id)
             send_message_to_doc(f"User {user} has completed their conversation. Summary:\n{analysis}")
             SESSION_IDS[user] = str(uuid.uuid4())  # reset session ID for new conversation
-            return jsonify({"text": "A summary has been sent to Julie. Your session has been reset for a new conversation."})
+            return jsonify({"text": "A summary has been sent to your doctor. Summary:\n{analysis}\n\n Your session has been reset for a new conversation."})
         SESSION_IDS[user] = str(uuid.uuid4())  # reset session ID even if no symptoms detected
         return jsonify({"text": "No symptoms were detected. Your session has been reset for a new conversation."})
     
