@@ -95,7 +95,7 @@ def main():
             analysis = medical_analysis_agent(symptoms, session_id)
             send_message_to_doc(f"User {user} has completed their conversation. Summary:\n{analysis}")
             SESSION_IDS[user] = str(uuid.uuid4())  # reset session ID for new conversation
-            return jsonify({"text": "A summary has been sent to your doctor. Summary:\n{analysis}\n\n Your session has been reset for a new conversation."})
+            return jsonify({"text": f"A summary has been sent to your doctor. Summary:\n{analysis}\n\n Your session has been reset for a new conversation."})
         SESSION_IDS[user] = str(uuid.uuid4())  # reset session ID even if no symptoms detected
         return jsonify({"text": "No symptoms were detected. Your session has been reset for a new conversation."})
     
